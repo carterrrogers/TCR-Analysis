@@ -1,0 +1,8 @@
+# Define the sequences
+beta_var_b57 = "DGGITQSPKYLFRKEGQNVTLSCEQNLNHDAMYWYRQDPGQGLRLIYYSQIVNDFQKGDIAEGYSVSREKKESFPLTVTSAQKNPTAFYLCATDTGSYGYTFGSGTRLTVV"
+                       
+beta_var_tb =       "DGGITQSPKYLFRKEGQNVTLSCEQNLNHDAMYWYRQDPGQGLRLIYYSWAQGDFQKGDIAEGYSVSREKKESFPLTVTSAQKNPTAFYLCASSWGAPYEQYFGPGTRLTVTE"
+
+# Compare the two sequences
+mismatches = sum(1 for fc, bc in zip(beta_var_b57, beta_var_tb) if fc != bc)
+print(f"Total mismatches: {mismatches}")
