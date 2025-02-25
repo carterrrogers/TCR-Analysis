@@ -1,7 +1,7 @@
 # positional analysis
 
-# FASTA txt file to be analyzed
-file_path = r"C:\Users\carte\Downloads\seqdump (10).txt"
+# aligned FASTA txt file to be analyzed
+file_path = r"C:\Users\carte\TCR Optimize\TCR Analysis\fasta_aligned_teb_alpha.txt"
 
 
 
@@ -109,6 +109,28 @@ def print_positionwise_percents(positionwise_percents):
         print(f"Position {i}: {aa_str}")
 
 
+def create_frequency_consesus(positionwise_percents):
+    """
+    given a list of dictionaries (positionwise_percents), where each element i is
+    a dictionary mapping amino_acid -> percent at position i, build a consensus
+    sequence by choosing the amino acid with the highest percentage at each position.
+
+    param: positionwise_percents - List[Dict[str, float]]
+    return: a single consensus sequence as a string.
+    """
+    consensus = []
+    for aa_dict in positionwise_percents:
+        if not aa_dict:
+            # If there's no data for this position, place 'X' or another placeholder
+            consensus.append('X')
+        else:
+            # Pick the amino acid with the highest percentage
+            best_aa, best_percent = max(aa_dict.items(), key=lambda x: x[1])
+            consensus.append(best_aa)
+    return "".join(consensus)
+
+
+
 if __name__ == "__main__":
     # usage:
 
@@ -118,3 +140,7 @@ if __name__ == "__main__":
 
     # 2) print the result:
     print_positionwise_percents(positionwise_percents)
+    print(f"Frequency consensus sequence: {create_frequency_consesus(positionwise_percents)}")
+
+
+
