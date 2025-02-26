@@ -1,8 +1,8 @@
 # positional analysis
 
 # aligned FASTA txt file to be analyzed
-file_path = r"C:\Users\carte\TCR Optimize\TCR Analysis\fasta_aligned_teb_alpha.txt"
-
+# file_path = r"C:\Users\carte\TCR Optimize\TCR Analysis\teb_alpha_aligned.txt"
+# original_seq = "IQKPDPAVYQLRDSKSSDKSVCLFTDFDSQTNVSQSKDSDVYITDKCVLDMRSMDFKSNSAVAWSNKSDFACANAFNNSIIPEDT"
 
 
 def extract_amino_acid_sequences(file_path):
@@ -107,6 +107,7 @@ def print_positionwise_percents(positionwise_percents):
             f"{aa}: {percent:.2f}%" for aa, percent in aa_pairs if percent > 0
         )
         print(f"Position {i}: {aa_str}")
+   
 
 
 def create_frequency_consesus(positionwise_percents):
@@ -131,16 +132,97 @@ def create_frequency_consesus(positionwise_percents):
 
 
 
-if __name__ == "__main__":
-    # usage:
+def report_differences_with_composition(
+    original_seq, 
+    consensus_seq, 
+    positionwise_percents
+):
+    """
+    Compare each position of original_seq and consensus_seq.
+    Return (and print) positions where there's a mismatch,
+    along with the percent composition at that index.
+    
+    :param original_seq: String, the original amino acid sequence
+    :param consensus_seq: String, the consensus sequence
+    :param positionwise_percents: List[Dict[str, float]] 
+                                  from compute_positionwise_amino_acid_percents()
+    :return: List of dicts, each capturing mismatch data, e.g.:
+             [
+               {
+                 "position": 3,
+                 "original_aa": "K",
+                 "consensus_aa": "D",
+                 "composition": {"K": 68.29, "T": 21.95, "P": 7.32, "N": 2.44}
+               },
+               ...
+             ]
+    """
+    differences = []
+    length = min(len(original_seq), len(consensus_seq))
+    
+    for i in range(length):
+        orig_aa = original_seq[i]
+        cons_aa = consensus_seq[i]
+        
+        if orig_aa != cons_aa:
+            # Get composition dictionary for position i (0-based).
+            # Make sure it doesn't go out of range if positionwise_percents is shorter.
+            if i < len(positionwise_percents):
+                composition_dict = positionwise_percents[i]
+            else:
+                composition_dict = {}
+            
+            differences.append({
+                "position": i + 1,
+                "original_aa": orig_aa,
+                "consensus_aa": cons_aa,
+                "composition": composition_dict
+            })
+    
+    # Print results in the desired format:
+    if not differences:
+        print("No mismatches found.")
+    else:
+        print("Mismatches with composition data:")
+        for diff in differences:
+            pos = diff["position"]
+            o = diff["original_aa"]
+            c = diff["consensus_aa"]
+            comp_dict = diff["composition"]
+            
+            # Build a sorted list of "AA: XX.XX%" in descending % order
+            comp_sorted = sorted(comp_dict.items(), key=lambda x: x[1], reverse=True)
+            comp_str = ", ".join(f"{aa}: {pct:.2f}%" for aa, pct in comp_sorted)
+            
+            # Print the combined info
+            print(
+                f"Position {pos} - "
+                f"Original: {o}, Consensus: {c}. "
+                f"Index Composition: {comp_str}"
+            )
+    
+    return differences
 
-    # 1) compute the position-wise composition:
-    amino_acid_sequences =  extract_amino_acid_sequences(file_path)
+
+# Example usage in main flow:
+if __name__ == "__main__":
+    file_path = r"C:\Users\carte\TCR Optimize\TCR Analysis\b57_alpha_aligned.txt"
+    original_sequence = "IQNPDPAVYQLRDSKSSDKSVCLFTDFDSQTNVSQSKDSDVYITDKCVLDMRSMDFKSNSAVAWSNKSDFACANAFNNSIIPEDT"
+
+    # 1) Extract sequences & compute
+    amino_acid_sequences = extract_amino_acid_sequences(file_path)
     positionwise_percents = compute_positionwise_amino_acid_percents(amino_acid_sequences)
 
-    # 2) print the result:
+    # 2) Print the composition table (optional)
     print_positionwise_percents(positionwise_percents)
-    print(f"Frequency consensus sequence: {create_frequency_consesus(positionwise_percents)}")
 
+    # 3) Build the consensus
+    consensus_sequence = create_frequency_consesus(positionwise_percents)
+    print(f"\nFrequency consensus sequence: {consensus_sequence}\n")
 
-
+    # 4) Compare to original sequence WITH composition details
+    diffs = report_differences_with_composition(
+        original_sequence, 
+        consensus_sequence, 
+        positionwise_percents
+    )
